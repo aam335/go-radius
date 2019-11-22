@@ -2,8 +2,9 @@ package radius
 
 // Attribute is a RADIUS attribute, which is part of a RADIUS packet.
 type Attribute struct {
-	Type  byte
-	Value interface{}
+	Type   byte
+	Vendor uint32
+	Value  interface{}
 }
 
 // AttributeCodec defines how an Attribute is encoded and decoded to and from

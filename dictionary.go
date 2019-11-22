@@ -2,6 +2,7 @@ package radius
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -16,38 +17,63 @@ func initDictionary() {
 }
 
 type dictEntry struct {
-	Type  byte
-	Name  string
-	Codec AttributeCodec
+	Vendor uint32
+	Type   byte
+	Name   string
+	Codec  AttributeCodec
 }
+
+type attributes [256]*dictEntry
 
 // Dictionary stores mappings between attribute names and types and
 // AttributeCodecs.
 type Dictionary struct {
-	mu               sync.RWMutex
-	attributesByType [256]*dictEntry
+	mu sync.RWMutex
+	// attributesByType [256]*dictEntry
 	attributesByName map[string]*dictEntry
+	attributesByType map[uint32]*attributes
+}
+
+// VsaRegister registers the AttributeCodec for the given attribute name and type.
+func (d *Dictionary) VsaRegister(vendorID uint32, name string, t byte, codec AttributeCodec) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	if d.attributesByType == nil {
+		d.attributesByType = make(map[uint32]*attributes)
+	}
+	attributesByType, ok := d.attributesByType[vendorID]
+	if !ok {
+		attributesByType = new(attributes)
+		d.attributesByType[vendorID] = attributesByType
+	}
+
+	if attributesByType[t] != nil {
+
+		return fmt.Errorf("radius: attribute with Type '%v' already registered", t)
+	}
+	entry := &dictEntry{
+		Vendor: vendorID,
+		Type:   t,
+		Name:   name,
+		Codec:  codec,
+	}
+
+	if d.attributesByName == nil {
+		d.attributesByName = make(map[string]*dictEntry)
+	}
+	if _, ok := d.attributesByName[name]; ok {
+		return fmt.Errorf("radius: attribute with Name '%v' already registered", name)
+	}
+
+	d.attributesByType[vendorID][t] = entry
+	d.attributesByName[name] = entry
+	return nil
 }
 
 // Register registers the AttributeCodec for the given attribute name and type.
 func (d *Dictionary) Register(name string, t byte, codec AttributeCodec) error {
-	d.mu.Lock()
-	if d.attributesByType[t] != nil {
-		d.mu.Unlock()
-		return errors.New("radius: attribute already registered")
-	}
-	entry := &dictEntry{
-		Type:  t,
-		Name:  name,
-		Codec: codec,
-	}
-	d.attributesByType[t] = entry
-	if d.attributesByName == nil {
-		d.attributesByName = make(map[string]*dictEntry)
-	}
-	d.attributesByName[name] = entry
-	d.mu.Unlock()
-	return nil
+	return d.VsaRegister(0, name, t, codec)
 }
 
 // MustRegister is a helper for Register that panics if it returns an error.
@@ -57,18 +83,25 @@ func (d *Dictionary) MustRegister(name string, t byte, codec AttributeCodec) {
 	}
 }
 
-func (d *Dictionary) get(name string) (t byte, codec AttributeCodec, ok bool) {
-	d.mu.RLock()
-	entry := d.attributesByName[name]
-	d.mu.RUnlock()
-	if entry == nil {
-		return
+// VsaMustRegister is a helper for Register that panics if it returns an error.
+func (d *Dictionary) VsaMustRegister(vendorID uint32, name string, t byte, codec AttributeCodec) {
+	if err := d.VsaRegister(vendorID, name, t, codec); err != nil {
+		panic(err)
 	}
-	t = entry.Type
-	codec = entry.Codec
-	ok = true
-	return
 }
+
+// func (d *Dictionary) get(name string) (t byte, codec AttributeCodec, ok bool) {
+// 	d.mu.RLock()
+// 	entry := d.attributesByName[name]
+// 	d.mu.RUnlock()
+// 	if entry == nil {
+// 		return
+// 	}
+// 	t = entry.Type
+// 	codec = entry.Codec
+// 	ok = true
+// 	return
+// }
 
 // Attr returns a new *Attribute whose type is registered under the given
 // name.
@@ -79,11 +112,13 @@ func (d *Dictionary) get(name string) (t byte, codec AttributeCodec, ok bool) {
 // first transformed before being stored in *Attribute. If the transform
 // function returns an error, nil and the error is returned.
 func (d *Dictionary) Attr(name string, value interface{}) (*Attribute, error) {
-	t, codec, ok := d.get(name)
-	if !ok {
+	d.mu.RLock()
+	entry := d.attributesByName[name]
+	d.mu.RUnlock()
+	if entry == nil {
 		return nil, errors.New("radius: attribute name not registered")
 	}
-	if transformer, ok := codec.(AttributeTransformer); ok {
+	if transformer, ok := entry.Codec.(AttributeTransformer); ok {
 		transformed, err := transformer.Transform(value)
 		if err != nil {
 			return nil, err
@@ -91,8 +126,9 @@ func (d *Dictionary) Attr(name string, value interface{}) (*Attribute, error) {
 		value = transformed
 	}
 	return &Attribute{
-		Type:  t,
-		Value: value,
+		Vendor: entry.Vendor,
+		Type:   entry.Type,
+		Value:  value,
 	}, nil
 }
 
@@ -109,9 +145,9 @@ func (d *Dictionary) MustAttr(name string, value interface{}) *Attribute {
 // if the given type is not registered.
 func (d *Dictionary) Name(t byte) (name string, ok bool) {
 	d.mu.RLock()
-	entry := d.attributesByType[t]
+	entry := d.attributesByType[0][t]
 	d.mu.RUnlock()
-	if entry == nil {
+	if entry == nil || entry.Vendor != 0 {
 		return
 	}
 	name = entry.Name
@@ -125,7 +161,7 @@ func (d *Dictionary) Type(name string) (t byte, ok bool) {
 	d.mu.RLock()
 	entry := d.attributesByName[name]
 	d.mu.RUnlock()
-	if entry == nil {
+	if entry == nil || entry.Vendor != 0 {
 		return
 	}
 	t = entry.Type
@@ -136,8 +172,11 @@ func (d *Dictionary) Type(name string) (t byte, ok bool) {
 // Codec returns the AttributeCodec for the given registered type. nil is
 // returned if the given type is not registered.
 func (d *Dictionary) Codec(t byte) AttributeCodec {
+	var entry *dictEntry = nil
 	d.mu.RLock()
-	entry := d.attributesByType[t]
+	if d.attributesByType[0] != nil {
+		entry = d.attributesByType[0][t]
+	}
 	d.mu.RUnlock()
 	if entry == nil {
 		return AttributeUnknown
