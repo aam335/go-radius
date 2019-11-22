@@ -181,11 +181,11 @@ func init() {
 	Builtin.VsaMustRegister(VendorRedback, "Class-Volume-In-Counter", 187, AttributeText)
 	Builtin.VsaMustRegister(VendorRedback, "Class-Volume-Out-Counter", 188, AttributeText)
 	Builtin.VsaMustRegister(VendorRedback, "Flow-FAC-Profile", 189, AttributeText)
-	Builtin.VsaMustRegister(VendorRedback, "Service-Name", 190, AttributeText)            //has_tag
-	Builtin.VsaMustRegister(VendorRedback, "Service-Action", 191, AttributeInteger)       //has_tag
-	Builtin.VsaMustRegister(VendorRedback, "Service-Parameter", 192, AttributeText)       //has_tag
-	Builtin.VsaMustRegister(VendorRedback, "Service-Error-Cause", 193, AttributeInteger)  //has_tag
-	Builtin.VsaMustRegister(VendorRedback, "Deactivate-Service-Name", 194, AttributeText) //has_tag
+	Builtin.VsaMustRegisterTag(VendorRedback, "Service-Name", 190, AttributeText)            //has_tag
+	Builtin.VsaMustRegisterTag(VendorRedback, "Service-Action", 191, AttributeInteger)       //has_tag
+	Builtin.VsaMustRegisterTag(VendorRedback, "Service-Parameter", 192, AttributeText)       //has_tag
+	Builtin.VsaMustRegisterTag(VendorRedback, "Service-Error-Cause", 193, AttributeInteger)  //has_tag
+	Builtin.VsaMustRegisterTag(VendorRedback, "Deactivate-Service-Name", 194, AttributeText) //has_tag
 	Builtin.VsaMustRegister(VendorRedback, "Qos-Profile-Overhead", 195, AttributeText)
 	Builtin.VsaMustRegister(VendorRedback, "Dynamic-QoS-Param", 196, AttributeText)
 	Builtin.VsaMustRegister(VendorRedback, "Acct-Alt-Session-ID", 197, AttributeText)
@@ -195,7 +195,7 @@ func init() {
 	Builtin.VsaMustRegister(VendorRedback, "DHCP-Field", 201, AttributeText)
 	Builtin.VsaMustRegister(VendorRedback, "DHCP-Option", 202, AttributeText)
 	Builtin.VsaMustRegister(VendorRedback, "Security-Service", 203, AttributeText)
-	Builtin.VsaMustRegister(VendorRedback, "Reauth-Service-Name", 204, AttributeText) //has_tag
+	Builtin.VsaMustRegisterTag(VendorRedback, "Reauth-Service-Name", 204, AttributeText) //has_tag
 	Builtin.VsaMustRegister(VendorRedback, "Flow-IP-Profile", 205, AttributeText)
 	Builtin.VsaMustRegister(VendorRedback, "Radius-Throttle-Watermark", 206, AttributeInteger)
 }

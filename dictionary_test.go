@@ -1,6 +1,8 @@
 package radius
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -20,7 +22,11 @@ func TestRegister(t *testing.T) {
 	require.Error(t, d.VsaRegister(555, "Test-Attr", 100, AttributeString), "Register to VSA w/duplicate name")
 	require.NoError(t, d.VsaRegister(555, "Test-Attr-VSA", 100, AttributeString), "Register to VSA")
 	require.NoError(t, d.VsaRegister(555, "Test-Attr-VSA1", 101, AttributeString), "Register to VSA")
+	require.Error(t, d.VsaRegisterTag(555, "Test-Attr-VSATAG", 101, AttributeString), "Register to VSA w/tag")
+	require.NoError(t, d.VsaRegisterTag(555, "Test-Attr-VSATAG", 102, AttributeString), "Register to VSA w/tag")
+	require.NoError(t, d.VsaRegisterTagFlag(555, "Test-Attr-VSATAG1", 103, true, AttributeString), "Register to VSA w/tag")
 
+	// old interface methods
 	a, ok := d.Type("Test-Attr")
 	require.True(t, ok, "got attr by name")
 	require.Equal(t, uint8(100), a, "type to name")
@@ -35,5 +41,49 @@ func TestRegister(t *testing.T) {
 	_, ok = d.Name(101)
 	require.False(t, ok, "VSA Type as native")
 
+	// test untagged Attributes
+
+	// Attr exists
+	act, err := d.Attr("Test-Attr", "testing")
+	require.NoError(t, err, "existing attr")
+	require.NoError(t, attrCmp("Test-Attr", &Attribute{Tag: 0, Tagged: false, Type: 100, Vendor: 0, Value: "testing"}, act), "Register to VSA w/tag")
+
+	// Attr not exists
+	_, err = d.Attr("Test-Attr2", "testing")
+	require.Error(t, err, "not existing attr")
+
+	// Attr exists and is VSA
+	act, err = d.Attr("Test-Attr-VSA", "testingVSA")
+	require.NoError(t, err, "existing attr w/VSA")
+	require.NoError(t, attrCmp("Test-Attr-VSA", &Attribute{Tag: 0, Tagged: false, Type: 100, Vendor: 555, Value: "testingVSA"}, act), "Register to VSA w/tag")
+
+	// Attr untagged method to tagged Attr
+	act, err = d.Attr("Test-Attr-VSATAG", "testing")
+	require.Error(t, err, "untagged value to tagged attr")
+
 	//
+	act, err = d.AttrTagged("Test-Attr-VSATAG", 99, "testingVSA")
+	require.NoError(t, err, "existing attr w/VSA")
+	require.NoError(t, attrCmp("Test-Attr-VSA", &Attribute{Tag: 99, Tagged: true, Type: 102, Vendor: 555, Value: "testingVSA"}, act), "Register to VSA w/tag")
+
+}
+
+func attrCmp(name string, exp, act *Attribute) error {
+	if exp.Tag != act.Tag {
+		return fmt.Errorf("Tag not equal exp: %v act:%v", exp.Tag, act.Tag)
+	}
+	if exp.Tagged != act.Tagged {
+		return fmt.Errorf("Tagged not equal exp: %v act:%v", exp.Tagged, act.Tagged)
+	}
+	if exp.Vendor != act.Vendor {
+		return fmt.Errorf("Vendor not equal exp: %v act:%v", exp.Vendor, act.Vendor)
+	}
+	if exp.Type != act.Type {
+		return fmt.Errorf("Type not equal exp: %v act:%v", exp.Type, act.Type)
+	}
+
+	if !reflect.DeepEqual(exp, act) {
+		return fmt.Errorf("Value not equal")
+	}
+	return nil
 }

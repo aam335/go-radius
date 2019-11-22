@@ -19,6 +19,7 @@ func initDictionary() {
 type dictEntry struct {
 	Vendor uint32
 	Type   byte
+	Tagged bool
 	Name   string
 	Codec  AttributeCodec
 }
@@ -34,8 +35,8 @@ type Dictionary struct {
 	attributesByType map[uint32]*attributes
 }
 
-// VsaRegister registers the AttributeCodec for the given attribute name and type.
-func (d *Dictionary) VsaRegister(vendorID uint32, name string, t byte, codec AttributeCodec) error {
+// VsaRegisterTagFlag registers the AttributeCodec for the given attribute name and type, value with or without tag attr.
+func (d *Dictionary) VsaRegisterTagFlag(vendorID uint32, name string, t byte, hasTag bool, codec AttributeCodec) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -55,6 +56,7 @@ func (d *Dictionary) VsaRegister(vendorID uint32, name string, t byte, codec Att
 	entry := &dictEntry{
 		Vendor: vendorID,
 		Type:   t,
+		Tagged: hasTag,
 		Name:   name,
 		Codec:  codec,
 	}
@@ -69,6 +71,16 @@ func (d *Dictionary) VsaRegister(vendorID uint32, name string, t byte, codec Att
 	d.attributesByType[vendorID][t] = entry
 	d.attributesByName[name] = entry
 	return nil
+}
+
+// VsaRegister registers the AttributeCodec for the given attribute name and type, without tag attr.
+func (d *Dictionary) VsaRegister(vendorID uint32, name string, t byte, codec AttributeCodec) error {
+	return d.VsaRegisterTagFlag(vendorID, name, t, false, codec)
+}
+
+// VsaRegisterTag registers the AttributeCodec for the given attribute name and type, without tag attr.
+func (d *Dictionary) VsaRegisterTag(vendorID uint32, name string, t byte, codec AttributeCodec) error {
+	return d.VsaRegisterTagFlag(vendorID, name, t, true, codec)
 }
 
 // Register registers the AttributeCodec for the given attribute name and type.
@@ -86,6 +98,13 @@ func (d *Dictionary) MustRegister(name string, t byte, codec AttributeCodec) {
 // VsaMustRegister is a helper for Register that panics if it returns an error.
 func (d *Dictionary) VsaMustRegister(vendorID uint32, name string, t byte, codec AttributeCodec) {
 	if err := d.VsaRegister(vendorID, name, t, codec); err != nil {
+		panic(err)
+	}
+}
+
+// VsaMustRegisterTag is a helper for Register that panics if it returns an error.
+func (d *Dictionary) VsaMustRegisterTag(vendorID uint32, name string, t byte, codec AttributeCodec) {
+	if err := d.VsaRegisterTagFlag(vendorID, name, t, true, codec); err != nil {
 		panic(err)
 	}
 }
@@ -112,12 +131,32 @@ func (d *Dictionary) VsaMustRegister(vendorID uint32, name string, t byte, codec
 // first transformed before being stored in *Attribute. If the transform
 // function returns an error, nil and the error is returned.
 func (d *Dictionary) Attr(name string, value interface{}) (*Attribute, error) {
+	return d.coreAttrTag(name, false, 0, value)
+}
+
+// AttrTagged returns a new *Attribute whose type is registered under the given
+// name.
+//
+// If name is not registered, nil and an error is returned.
+//
+// If the attribute's codec implements AttributeTransformer, the value is
+// first transformed before being stored in *Attribute. If the transform
+// function returns an error, nil and the error is returned.
+func (d *Dictionary) AttrTagged(name string, tag byte, value interface{}) (*Attribute, error) {
+	return d.coreAttrTag(name, true, tag, value)
+}
+
+func (d *Dictionary) coreAttrTag(name string, tagged bool, tag byte, value interface{}) (*Attribute, error) {
 	d.mu.RLock()
 	entry := d.attributesByName[name]
 	d.mu.RUnlock()
 	if entry == nil {
 		return nil, errors.New("radius: attribute name not registered")
 	}
+	if entry.Tagged != tagged {
+		return nil, fmt.Errorf("Attribute %v has Tagged=%v, but sets as Tagged=%v", name, entry.Tagged, tagged)
+	}
+
 	if transformer, ok := entry.Codec.(AttributeTransformer); ok {
 		transformed, err := transformer.Transform(value)
 		if err != nil {
@@ -128,6 +167,8 @@ func (d *Dictionary) Attr(name string, value interface{}) (*Attribute, error) {
 	return &Attribute{
 		Vendor: entry.Vendor,
 		Type:   entry.Type,
+		Tagged: tagged,
+		Tag:    tag,
 		Value:  value,
 	}, nil
 }

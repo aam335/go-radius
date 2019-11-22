@@ -4,6 +4,8 @@ package radius
 type Attribute struct {
 	Type   byte
 	Vendor uint32
+	Tagged bool
+	Tag    byte
 	Value  interface{}
 }
 
