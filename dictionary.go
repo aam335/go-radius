@@ -8,6 +8,9 @@ import (
 
 var builtinOnce sync.Once
 
+// NotVSID VSA ID for non-VSA (RFC) attributes
+const NotVSID = 0
+
 // Builtin is the built-in dictionary. It is initially loaded with the
 // attributes defined in RFC 2865 and RFC 2866.
 var Builtin *Dictionary
@@ -24,6 +27,7 @@ type dictEntry struct {
 	Codec  AttributeCodec
 }
 
+
 type attributes [256]*dictEntry
 
 // Dictionary stores mappings between attribute names and types and
@@ -34,6 +38,10 @@ type Dictionary struct {
 	attributesByName map[string]*dictEntry
 	attributesByType map[uint32]*attributes
 }
+
+
+
+
 
 // VsaRegisterTagFlag registers the AttributeCodec for the given attribute name and type, value with or without tag attr.
 func (d *Dictionary) VsaRegisterTagFlag(vendorID uint32, name string, t byte, hasTag bool, codec AttributeCodec) error {
@@ -50,7 +58,6 @@ func (d *Dictionary) VsaRegisterTagFlag(vendorID uint32, name string, t byte, ha
 	}
 
 	if attributesByType[t] != nil {
-
 		return fmt.Errorf("radius: attribute with Type '%v' already registered", t)
 	}
 	entry := &dictEntry{
@@ -185,15 +192,7 @@ func (d *Dictionary) MustAttr(name string, value interface{}) *Attribute {
 // Name returns the registered name for the given attribute type. ok is false
 // if the given type is not registered.
 func (d *Dictionary) Name(t byte) (name string, ok bool) {
-	d.mu.RLock()
-	entry := d.attributesByType[0][t]
-	d.mu.RUnlock()
-	if entry == nil || entry.Vendor != 0 {
-		return
-	}
-	name = entry.Name
-	ok = true
-	return
+	return d.NameExt(0, t)
 }
 
 // Type returns the registered type for the given attribute name. ok is false
@@ -202,7 +201,7 @@ func (d *Dictionary) Type(name string) (t byte, ok bool) {
 	d.mu.RLock()
 	entry := d.attributesByName[name]
 	d.mu.RUnlock()
-	if entry == nil || entry.Vendor != 0 {
+	if entry == nil || entry.Vendor != NotVSID {
 		return
 	}
 	t = entry.Type
@@ -223,4 +222,21 @@ func (d *Dictionary) Codec(t byte) AttributeCodec {
 		return AttributeUnknown
 	}
 	return entry.Codec
+}
+
+// NameExt returns the registered name for the given attribute type. ok is false
+// if the given type is not registered.
+func (d *Dictionary) NameExt(vendorID uint32, t byte) (name string, ok bool) {
+	var entry *dictEntry = nil
+	d.mu.RLock()
+	if d.attributesByType[vendorID] != nil {
+		entry = d.attributesByType[vendorID][t]
+	}
+	d.mu.RUnlock()
+	if entry == nil {
+		return
+	}
+	name = entry.Name
+	ok = true
+	return
 }
