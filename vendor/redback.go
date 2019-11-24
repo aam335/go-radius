@@ -197,7 +197,7 @@ var Redback r.DictionaryContainer = dict{
 		{Type: 199, Name: "Double-Authentication", Tagged: false, Codec: r.AttributeInteger},
 		{Type: 200, Name: "SBC-Adjacency", Tagged: false, Codec: r.AttributeText},
 		{Type: 201, Name: "DHCP-Field", Tagged: false, Codec: r.AttributeText},
-		{Type: 202, Name: "DHCP-Option", Tagged: false, Codec: r.AttributeText},
+		{Type: 202, Name: "DHCP-Option", Tagged: false, Codec: r.AttributeString},
 		{Type: 203, Name: "Security-Service", Tagged: false, Codec: r.AttributeText},
 		{Type: 204, Name: "Reauth-Service-Name", Tagged: true, Codec: r.AttributeText}, //has_tag
 		{Type: 205, Name: "Flow-IP-Profile", Tagged: false, Codec: r.AttributeText},

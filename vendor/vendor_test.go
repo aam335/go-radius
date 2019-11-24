@@ -11,6 +11,6 @@ import (
 func TestVendor(t *testing.T) {
 	d := r.Dictionary{}
 	d.MustRegisterN(Redback)
-	_, ok := d.NameExt(VendorIDRedback, 1)
+	_, ok := d.NameVID(VendorIDRedback, 1)
 	require.Truef(t, ok, "unable to find attr Vendor: %v Type %v", VendorIDRedback, 1)
 }

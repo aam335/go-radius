@@ -27,7 +27,6 @@ type dictEntry struct {
 	Codec  AttributeCodec
 }
 
-
 type attributes [256]*dictEntry
 
 // Dictionary stores mappings between attribute names and types and
@@ -38,10 +37,6 @@ type Dictionary struct {
 	attributesByName map[string]*dictEntry
 	attributesByType map[uint32]*attributes
 }
-
-
-
-
 
 // VsaRegisterTagFlag registers the AttributeCodec for the given attribute name and type, value with or without tag attr.
 func (d *Dictionary) VsaRegisterTagFlag(vendorID uint32, name string, t byte, hasTag bool, codec AttributeCodec) error {
@@ -192,7 +187,7 @@ func (d *Dictionary) MustAttr(name string, value interface{}) *Attribute {
 // Name returns the registered name for the given attribute type. ok is false
 // if the given type is not registered.
 func (d *Dictionary) Name(t byte) (name string, ok bool) {
-	return d.NameExt(0, t)
+	return d.NameVID(0, t)
 }
 
 // Type returns the registered type for the given attribute name. ok is false
@@ -212,31 +207,32 @@ func (d *Dictionary) Type(name string) (t byte, ok bool) {
 // Codec returns the AttributeCodec for the given registered type. nil is
 // returned if the given type is not registered.
 func (d *Dictionary) Codec(t byte) AttributeCodec {
-	var entry *dictEntry = nil
-	d.mu.RLock()
-	if d.attributesByType[0] != nil {
-		entry = d.attributesByType[0][t]
-	}
-	d.mu.RUnlock()
+	entry := d.getDictEntry(NotVSID, t)
 	if entry == nil {
-		return AttributeUnknown
+		return nil
 	}
 	return entry.Codec
 }
 
-// NameExt returns the registered name for the given attribute type. ok is false
+// NameVID returns the registered name for the given attribute VID and type. ok is false
 // if the given type is not registered.
-func (d *Dictionary) NameExt(vendorID uint32, t byte) (name string, ok bool) {
-	var entry *dictEntry = nil
-	d.mu.RLock()
-	if d.attributesByType[vendorID] != nil {
-		entry = d.attributesByType[vendorID][t]
-	}
-	d.mu.RUnlock()
+func (d *Dictionary) NameVID(vendorID uint32, t byte) (name string, ok bool) {
+	entry := d.getDictEntry(vendorID, t)
 	if entry == nil {
 		return
 	}
 	name = entry.Name
 	ok = true
+	return
+}
+
+// getDictEntry ...
+func (d *Dictionary) getDictEntry(vendorID uint32, t byte) (entry *dictEntry) {
+	//	var entry *dictEntry = nil
+	d.mu.RLock()
+	if d.attributesByType[vendorID] != nil {
+		entry = d.attributesByType[vendorID][t]
+	}
+	d.mu.RUnlock()
 	return
 }

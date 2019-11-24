@@ -98,7 +98,7 @@ func Parse(data, secret []byte, dictionary *Dictionary) (*Packet, error) {
 	}
 
 	copy(packet.Authenticator[:], data[4:20])
-
+	var err error
 	// Attributes
 	attributes := data[20:]
 	for len(attributes) > 0 {
@@ -113,16 +113,35 @@ func Parse(data, secret []byte, dictionary *Dictionary) (*Packet, error) {
 
 		attrType := attributes[0]
 		attrValue := attributes[2:attrLength]
+		attrVendorID := uint32(0)
+		attrTag := byte(0)
 
-		codec := dictionary.Codec(attrType)
+		// decode Vendor specific
+		if attrType == AttrVendorSpecific {
+			if attrVendorID, attrType, attrValue, err = DecodeAVPairByte(attrValue); err != nil {
+				return nil, err
+			}
+		}
+		codec := AttributeUnknown
+		// look attribute in dictionary
+		if dictEntry := dictionary.getDictEntry(attrVendorID, attrType); dictEntry != nil { // unknown attribute
+			if dictEntry.Tagged {
+				attrTag = attrValue[0]
+				attrValue = attrValue[1:]
+			}
+			codec = dictEntry.Codec
+		}
+
 		decoded, err := codec.Decode(packet, attrValue)
 		if err != nil {
 			return nil, err
 		}
 
 		attr := &Attribute{
-			Type:  attrType,
-			Value: decoded,
+			Vendor: attrVendorID,
+			Tag:    attrTag,
+			Type:   attrType,
+			Value:  decoded,
 		}
 
 		packet.Attributes = append(packet.Attributes, attr)
