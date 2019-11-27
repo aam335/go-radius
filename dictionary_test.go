@@ -14,6 +14,18 @@ type dictEntryT struct {
 	Name   string
 }
 
+func TestEncodings(t *testing.T) {
+	d := Dictionary{}
+	require.NoError(t, d.Register("Test-Attr-Int", 100, AttributeInteger), "Simple regiter to main")
+	// require.NoError(t, d.Register("Test-Attr-String", 100, AttributeInteger), "Simple regiter to main")
+	// require.NoError(t, d.Register("Test-Attr", 100, AttributeInteger), "Simple regiter to main")
+	// require.NoError(t, d.Register("Test-Attr", 100, AttributeInteger), "Simple regiter to main")
+	// require.NoError(t, d.Register("Test-Attr", 100, AttributeInteger), "Simple regiter to main")
+	_, err := d.Attr("Test-Attr-Int", "123")
+	require.NoError(t, err, "normal flow")
+
+}
+
 func TestRegister(t *testing.T) {
 	d := Dictionary{}
 	require.NoError(t, d.Register("Test-Attr", 100, AttributeString), "Simple regiter to main")

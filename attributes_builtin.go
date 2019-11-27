@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"net"
+	"strconv"
 	"time"
 	"unicode/utf8"
 )
@@ -114,6 +115,27 @@ func (attributeInteger) Encode(packet *Packet, value interface{}) ([]byte, error
 	raw := make([]byte, 4)
 	binary.BigEndian.PutUint32(raw, integer)
 	return raw, nil
+}
+
+func (attributeInteger) String(value interface{}) (interface{}, error) {
+	if val, ok := value.(uint32); ok {
+		return strconv.FormatUint(uint64(val), 10), nil
+	}
+	return "", errors.New("radius: not integer")
+}
+
+func (attributeInteger) Transform(invalue interface{}) (interface{}, error) {
+	if val, ok := invalue.(uint32); ok {
+		return val, nil
+	}
+	if _, ok := invalue.(string); ok {
+		u, err := strconv.ParseUint(invalue.(string), 10, 32)
+		if err != nil {
+			return nil, err
+		}
+		return u, nil
+	}
+	return nil, errors.New("radius: invalid input type")
 }
 
 type attributeTime struct{}
