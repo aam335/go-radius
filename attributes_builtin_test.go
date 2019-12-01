@@ -1,7 +1,6 @@
 package radius
 
 import (
-	"log"
 	"net"
 	"strconv"
 	"testing"
@@ -50,12 +49,6 @@ func TestTime(t *testing.T) {
 	attr := attributeTime{}
 	exptimeUnix := time.Now().Unix()
 	exptime := time.Unix(exptimeUnix, 0)
-
-	xx, _ := exptime.MarshalText()
-	log.Print(string(xx))
-	nt := time.Time{}
-	err := nt.UnmarshalText(xx)
-	log.Print(exptime, nt)
 
 	expectu32 := uint32(exptime.Unix())
 	strexpect := strconv.FormatUint(uint64(expectu32), 10)

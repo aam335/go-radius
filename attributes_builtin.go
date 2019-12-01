@@ -58,7 +58,6 @@ func (attributeText) Encode(packet *Packet, value interface{}) ([]byte, error) {
 type attributeString struct{}
 
 // may be transform from-to base64 needed there
-
 func (attributeString) Decode(packet *Packet, value []byte) (interface{}, error) {
 	v := make([]byte, len(value))
 	copy(v, value)
@@ -109,7 +108,7 @@ func (attributeAddress) String(value interface{}) (interface{}, error) {
 
 func (attributeAddress) Transform(invalue interface{}) (interface{}, error) {
 	if val, ok := invalue.(net.IP); ok {
-		return val, nil
+		return val.To4(), nil
 	}
 	if str, ok := invalue.(string); ok {
 		if ip := net.ParseIP(str).To4(); ip != nil {
