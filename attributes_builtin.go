@@ -57,6 +57,8 @@ func (attributeText) Encode(packet *Packet, value interface{}) ([]byte, error) {
 
 type attributeString struct{}
 
+// may be transform from-to base64 needed there
+
 func (attributeString) Decode(packet *Packet, value []byte) (interface{}, error) {
 	v := make([]byte, len(value))
 	copy(v, value)
@@ -96,6 +98,25 @@ func (attributeAddress) Encode(packet *Packet, value interface{}) ([]byte, error
 		return nil, errors.New("radius: address attribute must be an IPv4 net.IP")
 	}
 	return []byte(ip), nil
+}
+
+func (attributeAddress) String(value interface{}) (interface{}, error) {
+	if val, ok := value.(net.IP); ok {
+		return val.String(), nil
+	}
+	return "", errors.New("radius: not net.IP")
+}
+
+func (attributeAddress) Transform(invalue interface{}) (interface{}, error) {
+	if val, ok := invalue.(net.IP); ok {
+		return val, nil
+	}
+	if str, ok := invalue.(string); ok {
+		if ip := net.ParseIP(str).To4(); ip != nil {
+			return ip, nil
+		}
+	}
+	return nil, errors.New("radius: invalid IP format")
 }
 
 type attributeInteger struct{}
@@ -155,4 +176,26 @@ func (attributeTime) Encode(packet *Packet, value interface{}) ([]byte, error) {
 	raw := make([]byte, 4)
 	binary.BigEndian.PutUint32(raw, uint32(timestamp.Unix()))
 	return raw, nil
+}
+
+func (attributeTime) String(value interface{}) (interface{}, error) {
+	if val, ok := value.(time.Time); ok {
+		return strconv.FormatUint(uint64(val.Unix()), 10), nil
+	}
+	return "", errors.New("radius: not integer")
+}
+
+func (attributeTime) Transform(invalue interface{}) (interface{}, error) {
+	if val, ok := invalue.(time.Time); ok {
+		return val, nil
+	}
+	if _, ok := invalue.(string); ok {
+		u, err := strconv.ParseInt(invalue.(string), 10, 32)
+		if err != nil {
+			return nil, err
+		}
+		t := time.Unix(u, 0)
+		return t, nil
+	}
+	return nil, errors.New("radius: invalid input type")
 }

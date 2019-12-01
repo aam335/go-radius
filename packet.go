@@ -385,6 +385,9 @@ func (p *Packet) Encode() ([]byte, error) {
 
 	for _, attr := range p.Attributes {
 		codec := p.Dictionary.Codec(attr.Type)
+
+		// MARK: tags there
+
 		wire, err := codec.Encode(p, attr.Value)
 		if err != nil {
 			return nil, err
