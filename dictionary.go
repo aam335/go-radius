@@ -125,7 +125,7 @@ func (d *Dictionary) VsaMustRegisterTag(vendorID uint32, name string, t byte, co
 // }
 
 // Attr returns a new *Attribute whose type is registered under the given
-// name.
+// name. For tagged attributes use ValueTagged type w/same value types as untagged
 //
 // If name is not registered, nil and an error is returned.
 //
@@ -133,6 +133,9 @@ func (d *Dictionary) VsaMustRegisterTag(vendorID uint32, name string, t byte, co
 // first transformed before being stored in *Attribute. If the transform
 // function returns an error, nil and the error is returned.
 func (d *Dictionary) Attr(name string, value interface{}) (*Attribute, error) {
+	if tagVal, ok := value.(ValueTagged); ok {
+		return d.coreAttrTag(name, true, tagVal.Tag, tagVal.Value)
+	}
 	return d.coreAttrTag(name, false, 0, value)
 }
 

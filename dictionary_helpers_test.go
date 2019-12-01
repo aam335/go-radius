@@ -11,9 +11,16 @@ type td struct{}
 
 func (td) Dict() (uint32, []DictionaryAttr) {
 	return 0, []DictionaryAttr{
-		{1, "test", false, AttributeString},
-		{2, "test1", false, AttributeString},
-		{3, "test2", false, AttributeString},
+		{Type: 1, Name: "Attr-Int", Tagged: false, Codec: AttributeInteger},
+		{Type: 2, Name: "Attr-Str", Tagged: false, Codec: AttributeString},
+		{Type: 3, Name: "Attr-Time", Tagged: false, Codec: AttributeTime},
+		{Type: 4, Name: "Attr-Text", Tagged: false, Codec: AttributeText},
+		{Type: 5, Name: "Attr-Addr", Tagged: false, Codec: AttributeAddress},
+		{Type: 11, Name: "Attr-Int-Tag", Tagged: true, Codec: AttributeInteger},
+		{Type: 12, Name: "Attr-Str-Tag", Tagged: true, Codec: AttributeString},
+		{Type: 13, Name: "Attr-Time-Tag", Tagged: true, Codec: AttributeTime},
+		{Type: 14, Name: "Attr-Text-Tag", Tagged: true, Codec: AttributeText},
+		{Type: 15, Name: "Attr-Addr-Tag", Tagged: true, Codec: AttributeAddress},
 	}
 }
 

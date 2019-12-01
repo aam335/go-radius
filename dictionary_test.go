@@ -14,16 +14,24 @@ type dictEntryT struct {
 	Name   string
 }
 
-func TestEncodings(t *testing.T) {
+func TestValueTagged(t *testing.T) {
 	d := Dictionary{}
-	require.NoError(t, d.Register("Test-Attr-Int", 100, AttributeInteger), "Simple regiter to main")
-	// require.NoError(t, d.Register("Test-Attr-String", 100, AttributeInteger), "Simple regiter to main")
-	// require.NoError(t, d.Register("Test-Attr", 100, AttributeInteger), "Simple regiter to main")
-	// require.NoError(t, d.Register("Test-Attr", 100, AttributeInteger), "Simple regiter to main")
-	// require.NoError(t, d.Register("Test-Attr", 100, AttributeInteger), "Simple regiter to main")
-	_, err := d.Attr("Test-Attr-Int", "123")
-	require.NoError(t, err, "normal flow")
+	d.RegisterN(td{})
+	intT := ValueTagged{Value: uint32(12345), Tag: 10}
+	intStrT := ValueTagged{Value: "12345", Tag: 10}
+	// Tagged val, tagged attr
+	act, err := d.Attr("Attr-Int-Tag", intT)
+	require.NoError(t, err, "Tagged val, tagged attr")
+	require.NoError(t, attrCmp("Attr-Int-Tag", &Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: 0, Value: uint32(12345)}, act), "Tagged val, tagged attr")
 
+	// Tagged val as string, tagged attr
+	act, err = d.Attr("Attr-Int-Tag", intStrT)
+	require.NoError(t, err, "Tagged val, tagged attr")
+	require.NoError(t, attrCmp("Attr-Int-Tag", &Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: 0, Value: uint32(12345)}, act), "Tagged val, tagged attr")
+
+	// tagged val, not tagged attr
+	act, err = d.Attr("Attr-Int", intT)
+	require.Error(t, err, "Tagged val, not tagged attr")
 }
 
 func TestRegister(t *testing.T) {
@@ -54,7 +62,6 @@ func TestRegister(t *testing.T) {
 	require.False(t, ok, "VSA Type as native")
 
 	// test untagged Attributes
-
 	// Attr exists
 	act, err := d.Attr("Test-Attr", "testing")
 	require.NoError(t, err, "existing attr")
@@ -72,12 +79,10 @@ func TestRegister(t *testing.T) {
 	// Attr untagged method to tagged Attr
 	act, err = d.Attr("Test-Attr-VSATAG", "testing")
 	require.Error(t, err, "untagged value to tagged attr")
-
 	//
 	act, err = d.AttrTagged("Test-Attr-VSATAG", 99, "testingVSA")
 	require.NoError(t, err, "existing attr w/VSA")
 	require.NoError(t, attrCmp("Test-Attr-VSA", &Attribute{Tag: 99, Tagged: true, Type: 102, Vendor: 555, Value: "testingVSA"}, act), "Register to VSA w/tag")
-
 }
 
 func attrCmp(name string, exp, act *Attribute) error {
@@ -94,8 +99,8 @@ func attrCmp(name string, exp, act *Attribute) error {
 		return fmt.Errorf("Type not equal exp: %v act:%v", exp.Type, act.Type)
 	}
 
-	if !reflect.DeepEqual(exp, act) {
-		return fmt.Errorf("Value not equal")
+	if !reflect.DeepEqual(exp.Value, act.Value) {
+		return fmt.Errorf("Value not equal exp:%v(%v) act:%v(%v)", reflect.TypeOf(exp.Value), exp.Value, reflect.TypeOf(act.Value), act.Value)
 	}
 	return nil
 }

@@ -133,7 +133,7 @@ func (attributeInteger) Transform(invalue interface{}) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		return u, nil
+		return uint32(u), nil
 	}
 	return nil, errors.New("radius: invalid input type")
 }

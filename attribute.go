@@ -9,6 +9,12 @@ type Attribute struct {
 	Value  interface{}
 }
 
+// ValueTagged struct for tagged attributes
+type ValueTagged struct {
+	Tag   byte
+	Value interface{}
+}
+
 // AttributeCodec defines how an Attribute is encoded and decoded to and from
 // wire data.
 type AttributeCodec interface {
