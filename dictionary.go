@@ -229,6 +229,16 @@ func (d *Dictionary) NameVID(vendorID uint32, t byte) (name string, ok bool) {
 	return
 }
 
+// CodecVID returns the AttributeCodec for the given registered type. nil is
+// returned if the given type is not registered.
+func (d *Dictionary) CodecVID(vendorID uint32, t byte) AttributeCodec {
+	entry := d.getDictEntry(vendorID, t)
+	if entry == nil {
+		return nil
+	}
+	return entry.Codec
+}
+
 // getDictEntry ...
 func (d *Dictionary) getDictEntry(vendorID uint32, t byte) (entry *dictEntry) {
 	//	var entry *dictEntry = nil

@@ -13,15 +13,19 @@ import (
 var tstattrs = []struct {
 	n   string
 	v   interface{}
-	exp Attribute // attribute
+	exp Attribute
 }{
 	{n: "Attr-Int", v: uint32(5555), exp: Attribute{Tag: 0, Tagged: false, Type: 1, Vendor: 0, Value: uint32(5555)}},
 	{n: "Attr-Time", v: time.Unix(555555, 0), exp: Attribute{Tag: 0, Tagged: false, Type: 3, Vendor: 0, Value: time.Unix(555555, 0)}},
 	{n: "Attr-Addr", v: net.IP{10, 11, 12, 13}, exp: Attribute{Tag: 0, Tagged: false, Type: 5, Vendor: 0, Value: net.IP{10, 11, 12, 13}}},
 
-	{n: "VSA-Attr-Int", v: uint32(5555), exp: Attribute{Tag: 0, Tagged: false, Type: 1, Vendor: defTestVendor, Value: uint32(5555)}},
-	{n: "VSA-Attr-Time", v: time.Unix(555555, 0), exp: Attribute{Tag: 0, Tagged: false, Type: 3, Vendor: defTestVendor, Value: time.Unix(555555, 0)}},
-	{n: "VSA-Attr-Addr", v: net.IP{10, 11, 12, 13}, exp: Attribute{Tag: 0, Tagged: false, Type: 5, Vendor: defTestVendor, Value: net.IP{10, 11, 12, 13}}},
+	{n: "VSA-Attr-Int", v: uint32(5555), exp: Attribute{Tag: 0, Tagged: false, Type: 21, Vendor: defTestVendor, Value: uint32(5555)}},
+	{n: "VSA-Attr-Time", v: time.Unix(555555, 0), exp: Attribute{Tag: 0, Tagged: false, Type: 23, Vendor: defTestVendor, Value: time.Unix(555555, 0)}},
+	{n: "VSA-Attr-Addr", v: net.IP{10, 11, 12, 13}, exp: Attribute{Tag: 0, Tagged: false, Type: 25, Vendor: defTestVendor, Value: net.IP{10, 11, 12, 13}}},
+
+	{n: "VSA-Attr-Int-Tag", v: ValueTagged{Tag: 10, Value: uint32(5555)}, exp: Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: defTestVendor, Value: uint32(5555)}},
+	{n: "VSA-Attr-Time-Tag", v: ValueTagged{Tag: 10, Value: time.Unix(555555, 0)}, exp: Attribute{Tag: 10, Tagged: true, Type: 13, Vendor: defTestVendor, Value: time.Unix(555555, 0)}},
+	{n: "VSA-Attr-Addr-Tag", v: ValueTagged{Tag: 10, Value: net.IP{10, 11, 12, 13}}, exp: Attribute{Tag: 10, Tagged: true, Type: 15, Vendor: defTestVendor, Value: net.IP{10, 11, 12, 13}}},
 }
 
 var secret = []byte("VerySecret")

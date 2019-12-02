@@ -115,6 +115,7 @@ func Parse(data, secret []byte, dictionary *Dictionary) (*Packet, error) {
 		attrValue := attributes[2:attrLength]
 		attrVendorID := uint32(0)
 		attrTag := byte(0)
+		attrTagged := false
 
 		// decode Vendor specific
 		if attrType == AttrVendorSpecific {
@@ -128,6 +129,7 @@ func Parse(data, secret []byte, dictionary *Dictionary) (*Packet, error) {
 			if dictEntry.Tagged {
 				attrTag = attrValue[0]
 				attrValue = attrValue[1:]
+				attrTagged = true
 			}
 			codec = dictEntry.Codec
 		}
@@ -140,6 +142,7 @@ func Parse(data, secret []byte, dictionary *Dictionary) (*Packet, error) {
 		attr := &Attribute{
 			Vendor: attrVendorID,
 			Tag:    attrTag,
+			Tagged: attrTagged,
 			Type:   attrType,
 			Value:  decoded,
 		}
@@ -384,7 +387,7 @@ func (p *Packet) Encode() ([]byte, error) {
 	var bufferAttrs bytes.Buffer
 
 	for _, attr := range p.Attributes {
-		codec := p.Dictionary.Codec(attr.Type)
+		codec := p.Dictionary.CodecVID(attr.Vendor, attr.Type)
 
 		wire, err := codec.Encode(p, attr.Value)
 		if err != nil {
