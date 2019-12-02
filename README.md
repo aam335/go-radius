@@ -10,7 +10,13 @@ Significant changes are:
 * Common
   * Encoding/Decoding of attribute 26 (Vendor-Specific)
   * RFC2866 & RFC2869 (Accounting)
-
++ 
+  * Support Vendor Specific Dictionaries
+  * VSA can integrates to any dictionary (support rfc and VSA dictionaries together)
+  * Transform all attribute types from string values (include VSA)
+  * Support Tagged attributes
+  * Encodes and Decodes VSA and VSA Tagged attribute values
+  
 * Server
   * Request throttling (maximum requests per second) support
   * Supports limiting the number of requests in processing queue
@@ -79,3 +85,4 @@ func main() {
 ## Authors
 * Tim Cooper (<tim.cooper@layeh.com>)
 * Igor Novgorodov (<igor@novg.net>)
+* Andrey Melnikov (<echo@orn.ru>)
