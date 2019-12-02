@@ -386,18 +386,23 @@ func (p *Packet) Encode() ([]byte, error) {
 	for _, attr := range p.Attributes {
 		codec := p.Dictionary.Codec(attr.Type)
 
-		// MARK: tags there
-
 		wire, err := codec.Encode(p, attr.Value)
 		if err != nil {
 			return nil, err
 		}
-
+		typeID := attr.Type
+		if attr.Vendor != NotVSID {
+			typeID = AttrVendorSpecific
+			if attr.Tagged {
+				wire = EncodeAVPairByteTag(attr.Vendor, attr.Type, attr.Tag, wire)
+			} else {
+				wire = EncodeAVPairByteTag(attr.Vendor, attr.Type, attr.Tag, wire)
+			}
+		}
 		if len(wire) > 253 {
 			return nil, errors.New("radius: encoded attribute is too long")
 		}
-
-		bufferAttrs.WriteByte(attr.Type)
+		bufferAttrs.WriteByte(typeID)
 		bufferAttrs.WriteByte(byte(len(wire) + 2))
 		bufferAttrs.Write(wire)
 	}

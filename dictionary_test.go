@@ -87,20 +87,20 @@ func TestRegister(t *testing.T) {
 
 func attrCmp(name string, exp, act *Attribute) error {
 	if exp.Tag != act.Tag {
-		return fmt.Errorf("Tag not equal exp: %v act:%v", exp.Tag, act.Tag)
+		return fmt.Errorf("Tag not equal %v exp: %v act:%v", name, exp.Tag, act.Tag)
 	}
 	if exp.Tagged != act.Tagged {
-		return fmt.Errorf("Tagged not equal exp: %v act:%v", exp.Tagged, act.Tagged)
+		return fmt.Errorf("Tagged not equal %v exp: %v act:%v", name, exp.Tagged, act.Tagged)
 	}
 	if exp.Vendor != act.Vendor {
-		return fmt.Errorf("Vendor not equal exp: %v act:%v", exp.Vendor, act.Vendor)
+		return fmt.Errorf("Vendor not equal %v exp: %v act:%v", name, exp.Vendor, act.Vendor)
 	}
 	if exp.Type != act.Type {
-		return fmt.Errorf("Type not equal exp: %v act:%v", exp.Type, act.Type)
+		return fmt.Errorf("Type not equal %v exp: %v act:%v", name, exp.Type, act.Type)
 	}
 
 	if !reflect.DeepEqual(exp.Value, act.Value) {
-		return fmt.Errorf("Value not equal exp:%v(%v) act:%v(%v)", reflect.TypeOf(exp.Value), exp.Value, reflect.TypeOf(act.Value), act.Value)
+		return fmt.Errorf("Value not equal %v exp:%v(%v) act:%v(%v)", name, reflect.TypeOf(exp.Value), exp.Value, reflect.TypeOf(act.Value), act.Value)
 	}
 	return nil
 }
