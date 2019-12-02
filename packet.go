@@ -396,7 +396,7 @@ func (p *Packet) Encode() ([]byte, error) {
 			if attr.Tagged {
 				wire = EncodeAVPairByteTag(attr.Vendor, attr.Type, attr.Tag, wire)
 			} else {
-				wire = EncodeAVPairByteTag(attr.Vendor, attr.Type, attr.Tag, wire)
+				wire = EncodeAVPairByte(attr.Vendor, attr.Type, wire)
 			}
 		}
 		if len(wire) > 253 {
