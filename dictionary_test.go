@@ -17,17 +17,18 @@ type dictEntryT struct {
 func TestValueTagged(t *testing.T) {
 	d := Dictionary{}
 	d.RegisterN(td{})
+	d.RegisterN(tdVS{})
 	intT := ValueTagged{Value: uint32(12345), Tag: 10}
 	intStrT := ValueTagged{Value: "12345", Tag: 10}
 	// Tagged val, tagged attr
-	act, err := d.Attr("Attr-Int-Tag", intT)
+	act, err := d.Attr("VSA-Attr-Int-Tag", intT)
 	require.NoError(t, err, "Tagged val, tagged attr")
-	require.NoError(t, attrCmp("Attr-Int-Tag", &Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: 0, Value: uint32(12345)}, act), "Tagged val, tagged attr")
+	require.NoError(t, attrCmp("Attr-Int-Tag", &Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: 100, Value: uint32(12345)}, act), "Tagged val, tagged attr")
 
 	// Tagged val as string, tagged attr
-	act, err = d.Attr("Attr-Int-Tag", intStrT)
-	require.NoError(t, err, "Tagged val, tagged attr")
-	require.NoError(t, attrCmp("Attr-Int-Tag", &Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: 0, Value: uint32(12345)}, act), "Tagged val, tagged attr")
+	act, err = d.Attr("VSA-Attr-Int-Tag", intStrT)
+	require.NoError(t, err, "Tagged val, tagged attr, string")
+	require.NoError(t, attrCmp("Attr-Int-Tag", &Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: 100, Value: uint32(12345)}, act), "Tagged val, tagged attr")
 
 	// tagged val, not tagged attr
 	act, err = d.Attr("Attr-Int", intT)
