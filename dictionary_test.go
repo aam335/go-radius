@@ -31,7 +31,7 @@ func TestValueTagged(t *testing.T) {
 	require.NoError(t, attrCmp("Attr-Int-Tag", &Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: 100, Value: uint32(12345)}, act), "Tagged val, tagged attr")
 
 	// tagged val, not tagged attr
-	act, err = d.Attr("Attr-Int", intT)
+	_, err = d.Attr("Attr-Int", intT)
 	require.Error(t, err, "Tagged val, not tagged attr")
 }
 
@@ -78,7 +78,7 @@ func TestRegister(t *testing.T) {
 	require.NoError(t, attrCmp("Test-Attr-VSA", &Attribute{Tag: 0, Tagged: false, Type: 100, Vendor: 555, Value: "testingVSA"}, act), "Register to VSA w/tag")
 
 	// Attr untagged method to tagged Attr
-	act, err = d.Attr("Test-Attr-VSATAG", "testing")
+	_, err = d.Attr("Test-Attr-VSATAG", "testing")
 	require.Error(t, err, "untagged value to tagged attr")
 	//
 	act, err = d.AttrTagged("Test-Attr-VSATAG", 99, "testingVSA")
