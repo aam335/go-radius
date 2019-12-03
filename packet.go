@@ -388,7 +388,9 @@ func (p *Packet) Encode() ([]byte, error) {
 
 	for _, attr := range p.Attributes {
 		codec := p.Dictionary.CodecVID(attr.Vendor, attr.Type)
-
+		if codec == nil {
+			return nil, errors.New("radius: encoded attribute is unknown")
+		}
 		wire, err := codec.Encode(p, attr.Value)
 		if err != nil {
 			return nil, err
