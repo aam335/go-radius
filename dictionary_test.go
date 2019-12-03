@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +29,7 @@ func TestValueTagged(t *testing.T) {
 	// Tagged val as string, tagged attr
 	act, err = d.Attr("VSA-Attr-Int-Tag", intStrT)
 	require.NoError(t, err, "Tagged val, tagged attr, string")
-	require.NoError(t, attrCmp("Attr-Int-Tag", &Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: 100, Value: uint32(12345)}, act), "Tagged val, tagged attr")
+	require.NoError(t, attrCmp("VSA-Attr-Int-Tag", &Attribute{Tag: 10, Tagged: true, Type: 11, Vendor: 100, Value: uint32(12345)}, act), "Tagged val, tagged attr")
 
 	// tagged val, not tagged attr
 	_, err = d.Attr("Attr-Int", intT)
@@ -104,4 +105,14 @@ func attrCmp(name string, exp, act *Attribute) error {
 		return fmt.Errorf("Value not equal %v exp:%v(%v) act:%v(%v)", name, reflect.TypeOf(exp.Value), exp.Value, reflect.TypeOf(act.Value), act.Value)
 	}
 	return nil
+}
+
+func TestGetDict(t *testing.T) {
+	d := Dictionary{}
+	d.RegisterN(td{})
+	d.RegisterN(tdVS{})
+
+	assert.NotNil(t, d.getDictEntryByName("Attr-Int"))
+	assert.Nil(t, d.getDictEntryByName("Attr-Int-NotExists"))
+	assert.NotNil(t, d.getDictEntryByName("VSA-Attr-Int-Tag"))
 }

@@ -249,3 +249,12 @@ func (d *Dictionary) getDictEntry(vendorID uint32, t byte) (entry *dictEntry) {
 	d.mu.RUnlock()
 	return
 }
+
+// getDictEntryByName ...
+func (d *Dictionary) getDictEntryByName(name string) (entry *dictEntry) {
+	//	var entry *dictEntry = nil
+	d.mu.RLock()
+	entry = d.attributesByName[name]
+	d.mu.RUnlock()
+	return
+}
