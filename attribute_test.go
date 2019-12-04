@@ -11,7 +11,7 @@ import (
 
 func TestAttrTransform(t *testing.T) {
 	d := Dictionary{}
-	assert.NoError(t, d.RegisterN(td{}), "Normal Attrs")
+	assert.NoError(t, d.RegisterDC(td{}), "Normal Attrs")
 
 	tests := []struct {
 		n    string

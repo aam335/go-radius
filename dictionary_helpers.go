@@ -13,8 +13,8 @@ type DictionaryContainer interface {
 	Dict() (vendorID uint32, attrs []DictionaryAttr)
 }
 
-// RegisterN register attributes from []DictionaryAttr slice
-func (d *Dictionary) RegisterN(dict DictionaryContainer) error {
+// RegisterDC register attributes from DictionaryContainer
+func (d *Dictionary) RegisterDC(dict DictionaryContainer) error {
 	vendorID, nAttr := dict.Dict()
 	for _, a := range nAttr {
 		if err := d.VsaRegisterTagFlag(vendorID, a.Name, a.Type, a.Tagged, a.Codec); err != nil {
@@ -25,9 +25,9 @@ func (d *Dictionary) RegisterN(dict DictionaryContainer) error {
 	return nil
 }
 
-// MustRegisterN is a helper for RegisterN that panics if it returns an error.
-func (d *Dictionary) MustRegisterN(dict DictionaryContainer) {
-	if err := d.RegisterN(dict); err != nil {
+// MustRegisterDC is a helper for RegisterN that panics if it returns an error.
+func (d *Dictionary) MustRegisterDC(dict DictionaryContainer) {
+	if err := d.RegisterDC(dict); err != nil {
 		panic(err)
 	}
 }

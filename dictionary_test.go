@@ -17,8 +17,8 @@ type dictEntryT struct {
 
 func TestValueTagged(t *testing.T) {
 	d := Dictionary{}
-	d.RegisterN(td{})
-	d.RegisterN(tdVS{})
+	d.RegisterDC(td{})
+	d.RegisterDC(tdVS{})
 	intT := ValueTagged{Value: uint32(12345), Tag: 10}
 	intStrT := ValueTagged{Value: "12345", Tag: 10}
 	// Tagged val, tagged attr
@@ -109,8 +109,8 @@ func attrCmp(name string, exp, act *Attribute) error {
 
 func TestGetDict(t *testing.T) {
 	d := Dictionary{}
-	d.RegisterN(td{})
-	d.RegisterN(tdVS{})
+	d.RegisterDC(td{})
+	d.RegisterDC(tdVS{})
 
 	assert.NotNil(t, d.getDictEntryByName("Attr-Int"))
 	assert.Nil(t, d.getDictEntryByName("Attr-Int-NotExists"))

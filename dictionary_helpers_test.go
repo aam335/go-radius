@@ -40,7 +40,7 @@ func (tdVS) Dict() (uint32, []DictionaryAttr) {
 
 func TestRegisterN(t *testing.T) {
 	d := Dictionary{}
-	assert.NoError(t, d.RegisterN(td{}), "Normal Attrs")
+	assert.NoError(t, d.RegisterDC(td{}), "Normal Attrs")
 	_, ok := d.Name(1)
 	require.True(t, ok, "unable to find attr Type=1")
 }

@@ -10,12 +10,14 @@ Significant changes are:
 * Common
   * Encoding/Decoding of attribute 26 (Vendor-Specific)
   * RFC2866 & RFC2869 (Accounting)
-+ 
+* New Common
   * Support Vendor Specific Dictionaries
   * VSA can integrates to any dictionary (support rfc and VSA dictionaries together)
-  * Transform all attribute types from string values (include VSA)
   * Support Tagged attributes
   * Encodes and Decodes VSA and VSA Tagged attribute values
+  * Transform attribute types from string values (include VSA) (usefull for db connections)
+  * AttrFilter packet attribute names resolver 
+  See tests for more information 
   
 * Server
   * Request throttling (maximum requests per second) support
@@ -40,6 +42,7 @@ import (
 
 func main() {
     handler := func (w radius.ResponseWriter, p *radius.Packet) {
+
         w.AccessAccept()
     }
 

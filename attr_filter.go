@@ -28,7 +28,16 @@ func (a *AttrFilter) Filter(p *Packet) (map[string]*Attribute, error) {
 	for _, attr := range p.Attributes {
 		key := uint64(attr.Vendor)<<8 + uint64(attr.Type)
 		if dictRec, ok := a.dictReduced[key]; ok {
-			filtered[dictRec.Name] = attr
+			name := dictRec.Name
+			id := 0
+			for {
+				if _, ok = filtered[name]; !ok {
+					filtered[name] = attr
+					break
+				}
+				name = fmt.Sprint(dictRec.Name, ".", id)
+				id++
+			}
 		}
 	}
 	return filtered, nil

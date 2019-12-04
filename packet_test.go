@@ -32,8 +32,8 @@ var secret = []byte("VerySecret")
 
 func TestPacketEncode(t *testing.T) {
 	d := Dictionary{}
-	require.NoError(t, d.RegisterN(td{}), "load attrs")
-	require.NoError(t, d.RegisterN(tdVS{}), "load attrs")
+	require.NoError(t, d.RegisterDC(td{}), "load attrs")
+	require.NoError(t, d.RegisterDC(tdVS{}), "load attrs")
 
 	p := New(CodeAccessRequest, secret)
 	p.Dictionary = &d
