@@ -1,6 +1,7 @@
 package radius
 
 import (
+	"math"
 	"net"
 	"strconv"
 	"testing"
@@ -12,6 +13,24 @@ import (
 func TestInteger(t *testing.T) {
 	attr := attributeInteger{}
 	expect := uint32(100)
+	x, err := attr.Encode(nil, expect)
+	assert.NoError(t, err)
+	v, err := attr.Decode(nil, x)
+	assert.NoError(t, err)
+	assert.Equal(t, expect, v)
+
+	str := strconv.FormatUint(uint64(expect), 10)
+	tr, err := attr.Transform(str)
+	assert.NoError(t, err)
+	assert.Equal(t, expect, v)
+	v, err = attr.String(tr)
+	assert.NoError(t, err)
+	assert.Equal(t, str, v)
+}
+
+func TestInteger64(t *testing.T) {
+	attr := attributeInteger64{}
+	expect := uint64(math.MaxUint64)
 	x, err := attr.Encode(nil, expect)
 	assert.NoError(t, err)
 	v, err := attr.Decode(nil, x)

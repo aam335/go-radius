@@ -19,6 +19,8 @@ var (
 	AttributeAddress AttributeCodec
 	// uint32
 	AttributeInteger AttributeCodec
+	// uint64
+	AttributeInteger64 AttributeCodec
 	// time.Time
 	AttributeTime AttributeCodec
 	// []byte
@@ -30,6 +32,7 @@ func init() {
 	AttributeString = attributeString{}
 	AttributeAddress = attributeAddress{}
 	AttributeInteger = attributeInteger{}
+	AttributeInteger64 = attributeInteger64{}
 	AttributeTime = attributeTime{}
 	AttributeUnknown = attributeString{}
 }
@@ -195,6 +198,46 @@ func (attributeTime) Transform(invalue interface{}) (interface{}, error) {
 		}
 		t := time.Unix(u, 0)
 		return t, nil
+	}
+	return nil, errors.New("radius: invalid input type")
+}
+
+type attributeInteger64 struct{}
+
+func (attributeInteger64) Decode(packet *Packet, value []byte) (interface{}, error) {
+	if len(value) != 8 {
+		return nil, errors.New("radius: integer attribute has invalid size")
+	}
+	return binary.BigEndian.Uint64(value), nil
+}
+
+func (attributeInteger64) Encode(packet *Packet, value interface{}) ([]byte, error) {
+	integer, ok := value.(uint64)
+	if !ok {
+		return nil, errors.New("radius: integer attribute must be uint32")
+	}
+	raw := make([]byte, 8)
+	binary.BigEndian.PutUint64(raw, integer)
+	return raw, nil
+}
+
+func (attributeInteger64) String(value interface{}) (interface{}, error) {
+	if val, ok := value.(uint64); ok {
+		return strconv.FormatUint(uint64(val), 10), nil
+	}
+	return "", errors.New("radius: not integer")
+}
+
+func (attributeInteger64) Transform(invalue interface{}) (interface{}, error) {
+	if val, ok := invalue.(uint64); ok {
+		return val, nil
+	}
+	if _, ok := invalue.(string); ok {
+		u, err := strconv.ParseUint(invalue.(string), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return uint64(u), nil
 	}
 	return nil, errors.New("radius: invalid input type")
 }

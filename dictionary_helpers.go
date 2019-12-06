@@ -25,7 +25,7 @@ func (d *Dictionary) RegisterDC(dict DictionaryContainer) error {
 	return nil
 }
 
-// MustRegisterDC is a helper for RegisterN that panics if it returns an error.
+// MustRegisterDC is a helper for RegisterDC that panics if it returns an error.
 func (d *Dictionary) MustRegisterDC(dict DictionaryContainer) {
 	if err := d.RegisterDC(dict); err != nil {
 		panic(err)
