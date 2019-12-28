@@ -1,6 +1,7 @@
 package radius
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 )
@@ -83,4 +84,27 @@ func (a *AttrFilter) SetKeys(keys []OneKey) (err error) {
 		a.keys = append(a.keys, key)
 	}
 	return nil
+}
+
+// Keygen generates unique requester identifier for pub/sub and smart cache
+// Keys MUST be registered by SetKeys. attrMap is a output of Filter
+func (a *AttrFilter) Keygen(attrMap map[string]*Attribute) string {
+	out := []string{}
+	for _, key := range a.keys {
+		if attr, ok := attrMap[key.attrName]; ok {
+			val := fmt.Sprint(attr.Value)
+			if key.re == nil {
+				out = append(out, val)
+				continue
+			}
+			fields := key.re.FindStringSubmatch(val)
+			for _, fldNo := range key.fields {
+				if len(fields) > fldNo {
+					out = append(out, fields[fldNo])
+				}
+			}
+		}
+	}
+	b, _ := json.Marshal(out)
+	return string(b)
 }

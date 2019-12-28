@@ -140,3 +140,47 @@ func TestAttrFilter_SetKeys(t *testing.T) {
 	// require.NoError(t, err)
 
 }
+
+func TestAttrFilter_keygen(t *testing.T) {
+	d := &Dictionary{}
+	d.RegisterDC(td{})
+	d.RegisterDC(tdVS{})
+	nf, err := d.NewAttrFilter(keysAttrs)
+	require.NoError(t, err)
+	p, err := makeTestPacket(d)
+	require.NoError(t, err)
+
+	filtered, err := nf.Filter(p)
+	require.NoError(t, nf.SetKeys([]OneKey{{Name: "Attr-Text"}, {Name: "Attr-Int"}, {Name: "Attr-Text", Regexp: `(\w+)\s+\w+\s+(\w+)`, Fields: []int{1, 2}}}))
+
+	type fields struct {
+		dictReduced map[uint64]*dictEntry
+		keys        []key
+	}
+	type args struct {
+		attrMap map[string]*Attribute
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		// TODO: Add test cases.
+		{name: "nils", want: "[]"},
+		{name: "nil map", fields: fields{keys: []key{{attrName: "Attr-Text"}}}, want: "[]"},
+		{name: "text", fields: fields{keys: []key{{attrName: "Attr-Text"}}}, args: args{filtered}, want: `["test value text"]`},
+		{name: "text", fields: fields{keys: nf.keys}, args: args{filtered}, want: `["test value text","12345","test","text"]`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := &AttrFilter{
+				dictReduced: tt.fields.dictReduced,
+				keys:        tt.fields.keys,
+			}
+			if got := a.Keygen(tt.args.attrMap); got != tt.want {
+				t.Errorf("AttrFilter.keygen() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
