@@ -93,3 +93,50 @@ func TestFilter(t *testing.T) {
 	}
 
 }
+
+var keysAttrs = []string{"Attr-Int", "Attr-Time", "VSA-Attr-Time", "Attr-Text"}
+
+func TestAttrFilter_SetKeys(t *testing.T) {
+	d := &Dictionary{}
+	d.RegisterDC(td{})
+	d.RegisterDC(tdVS{})
+	nf, err := d.NewAttrFilter(keysAttrs)
+	require.NoError(t, err)
+
+	type fields struct {
+		dictReduced map[uint64]*dictEntry
+		keys        []key
+	}
+	type args struct {
+		keys []OneKey
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{name: "add not exist on empty filter", fields: fields{}, args: args{keys: []OneKey{{Name: "not exists"}}}, wantErr: true},
+		{name: "add not exist", fields: fields{dictReduced: nf.dictReduced}, args: args{keys: []OneKey{{Name: "not exists"}}}, wantErr: true},
+		{name: "add exist", fields: fields{dictReduced: nf.dictReduced}, args: args{keys: []OneKey{{Name: "Attr-Text"}}}, wantErr: false},
+		{name: "add exists regexp", fields: fields{dictReduced: nf.dictReduced}, args: args{keys: []OneKey{{Name: "Attr-Text", Regexp: `(\w+)`, Fields: []int{0, 2}}}}, wantErr: false},
+		{name: "add exists regexp errored", fields: fields{dictReduced: nf.dictReduced}, args: args{keys: []OneKey{{Name: "Attr-Text", Regexp: `(\w+`, Fields: []int{0, 2}}}}, wantErr: true},
+		{name: "add exists dual", fields: fields{dictReduced: nf.dictReduced}, args: args{keys: []OneKey{{Name: "Attr-Text"}, {Name: "Attr-Text", Regexp: `(\w+)`, Fields: []int{0, 2}}}}, wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := &AttrFilter{
+				dictReduced: tt.fields.dictReduced,
+				keys:        tt.fields.keys,
+			}
+			if err := a.SetKeys(tt.args.keys); (err != nil) != tt.wantErr {
+				t.Errorf("AttrFilter.SetKeys() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+
+	// p, err := makeTestPacket(d)
+	// require.NoError(t, err)
+
+}
