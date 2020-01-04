@@ -35,7 +35,7 @@ func (d *Dictionary) NewAttrFilter(names []string) (*AttrFilter, error) {
 }
 
 // Filter intersect packet attributes & filter, than run
-func (a *AttrFilter) Filter(p *Packet) (map[string]*Attribute, error) {
+func (a *AttrFilter) Filter(p *Packet) map[string]*Attribute {
 	filtered := make(map[string]*Attribute)
 	for _, attr := range p.Attributes {
 		key := uint64(attr.Vendor)<<8 + uint64(attr.Type)
@@ -52,7 +52,7 @@ func (a *AttrFilter) Filter(p *Packet) (map[string]*Attribute, error) {
 			}
 		}
 	}
-	return filtered, nil
+	return filtered
 }
 
 type key struct {
@@ -112,11 +112,8 @@ func (a *AttrFilter) Keygen(attrMap map[string]*Attribute) string {
 }
 
 // FilterStrings returns transport key and attributes in map[string]string
-func (a *AttrFilter) FilterStrings(p *Packet) (key string, strAttrs map[string]string, err error) {
-	attrs, err := a.Filter(p)
-	if err != nil {
-		return "", nil, err
-	}
+func (a *AttrFilter) FilterStrings(p *Packet) (key string, strAttrs map[string]string) {
+	attrs := a.Filter(p)
 	if len(a.keys) > 0 {
 		key = a.Keygen(attrs)
 	}

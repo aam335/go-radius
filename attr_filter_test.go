@@ -72,8 +72,8 @@ func TestFilter(t *testing.T) {
 	require.NoError(t, err)
 	nf, err := d.NewAttrFilter(attrs)
 	require.NoError(t, err)
-	filteredAssoc, err := nf.Filter(p)
-	require.NoError(t, err)
+	filteredAssoc := nf.Filter(p)
+
 	for _, attrName := range attrs {
 		assert.NotNilf(t, filteredAssoc[attrName], "%v not in reply", attrName)
 	}
@@ -84,8 +84,7 @@ func TestFilter(t *testing.T) {
 		assert.NoError(t, p.Add(attrName, uint32(555))) // duplicate assoc
 	}
 
-	filteredAssoc, err = nf.Filter(p)
-	require.NoError(t, err)
+	filteredAssoc = nf.Filter(p)
 
 	assert.NotNilf(t, filteredAssoc[attrName], "%v not in reply", attrName)
 	for i := 0; i < copys; i++ {
@@ -151,7 +150,7 @@ func TestAttrFilter_keygen(t *testing.T) {
 	p, err := makeTestPacket(d)
 	require.NoError(t, err)
 
-	filtered, err := nf.Filter(p)
+	filtered := nf.Filter(p)
 	require.NoError(t, nf.SetKeys([]OneKey{{Name: "Attr-Text"}, {Name: "Attr-Int"}, {Name: "Attr-Text", Regexp: `(\w+)\s+\w+\s+(\w+)`, Fields: []int{1, 2}}}))
 
 	type fields struct {
@@ -205,20 +204,16 @@ func TestAttrFilter_FilterStrings(t *testing.T) {
 		args         args
 		wantKey      string
 		wantStrAttrs map[string]string
-		wantErr      bool
 	}{
 		// TODO: Add test cases.
 		{name: "1st", args: args{p}, wantKey: `test_value_text$12345`,
-			wantStrAttrs: map[string]string{"Attr-Int": "12345", "Attr-Text": "test value text", "Attr-Time": "1970-01-01 03:00:00 +0300 MSK", "VSA-Attr-Time": "1970-01-01 03:00:00 +0300 MSK"}, wantErr: false},
+			wantStrAttrs: map[string]string{"Attr-Int": "12345", "Attr-Text": "test value text", "Attr-Time": "1970-01-01 03:00:00 +0300 MSK", "VSA-Attr-Time": "1970-01-01 03:00:00 +0300 MSK"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a := nf
-			gotKey, gotStrAttrs, err := a.FilterStrings(tt.args.p)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("AttrFilter.FilterStrings() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			gotKey, gotStrAttrs := a.FilterStrings(tt.args.p)
+
 			if gotKey != tt.wantKey {
 				t.Errorf("AttrFilter.FilterStrings() gotKey = %v, want %v", gotKey, tt.wantKey)
 			}

@@ -44,3 +44,36 @@ func TestRegisterN(t *testing.T) {
 	_, ok := d.Name(1)
 	require.True(t, ok, "unable to find attr Type=1")
 }
+
+func TestDictionary_StrsToAttrs(t *testing.T) {
+	d := Dictionary{}
+	d.MustRegisterDC(td{})
+
+	m := map[string]string{"Attr-Int": "1", "Attr-Int.0": "1", "Attr-Str": "string"}
+	m1 := map[string]string{"Attr-Int2": "1", "Attr-Str": "string"}
+
+	type args struct {
+		m map[string]string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantAttrs []*Attribute
+		wantErr   bool
+	}{
+		{name: "all attrs in Dict", args: args{m: m}, wantErr: false},
+		{name: "attr not in Dict", args: args{m: m1}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := d.StrsToAttrs(tt.args.m)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Dictionary.StrsToAttrs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			// if !reflect.DeepEqual(gotAttrs, tt.wantAttrs) {
+			// 	t.Errorf("Dictionary.StrsToAttrs() = %v, want %v", gotAttrs, tt.wantAttrs)
+			// }
+		})
+	}
+}

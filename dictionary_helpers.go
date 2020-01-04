@@ -1,5 +1,7 @@
 package radius
 
+import "strings"
+
 // DictionaryAttr structure for mass Attribute import
 type DictionaryAttr struct {
 	Type   byte
@@ -30,4 +32,21 @@ func (d *Dictionary) MustRegisterDC(dict DictionaryContainer) {
 	if err := d.RegisterDC(dict); err != nil {
 		panic(err)
 	}
+}
+
+// StrsToAttrs makes []*Attribute from map[string]string
+// this suitable for reply from sql backend etc...
+func (d *Dictionary) StrsToAttrs(m map[string]string) (attrs []*Attribute, err error) {
+	attrs = []*Attribute{}
+	var a *Attribute
+	for name, val := range m {
+		if idx := strings.Index(name, "."); idx > 0 {
+			name = name[:idx]
+		}
+		if a, err = d.Attr(name, val); err != nil {
+			return
+		}
+		attrs = append(attrs, a)
+	}
+	return
 }
