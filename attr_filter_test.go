@@ -2,6 +2,7 @@ package radius
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -167,10 +168,10 @@ func TestAttrFilter_keygen(t *testing.T) {
 		want   string
 	}{
 		// TODO: Add test cases.
-		{name: "nils", want: "[]"},
-		{name: "nil map", fields: fields{keys: []key{{attrName: "Attr-Text"}}}, want: "[]"},
-		{name: "text", fields: fields{keys: []key{{attrName: "Attr-Text"}}}, args: args{filtered}, want: `["test value text"]`},
-		{name: "text", fields: fields{keys: nf.keys}, args: args{filtered}, want: `["test value text","12345","test","text"]`},
+		{name: "nils", want: ""},
+		{name: "nil map", fields: fields{keys: []key{{attrName: "Attr-Text"}}}, want: ""},
+		{name: "text", fields: fields{keys: []key{{attrName: "Attr-Text"}}}, args: args{filtered}, want: `test_value_text`},
+		{name: "text", fields: fields{keys: nf.keys}, args: args{filtered}, want: `test_value_text$12345$test$text`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -180,6 +181,49 @@ func TestAttrFilter_keygen(t *testing.T) {
 			}
 			if got := a.Keygen(tt.args.attrMap); got != tt.want {
 				t.Errorf("AttrFilter.keygen() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAttrFilter_FilterStrings(t *testing.T) {
+	d := &Dictionary{}
+	d.RegisterDC(td{})
+	d.RegisterDC(tdVS{})
+	p, err := makeTestPacket(d)
+	require.NoError(t, err)
+	nf, err := d.NewAttrFilter(keysAttrs)
+	require.NoError(t, err)
+	err = nf.SetKeys([]OneKey{{Name: "Attr-Text"}, {Name: "Attr-Int"}})
+	require.NoError(t, err)
+
+	type args struct {
+		p *Packet
+	}
+	tests := []struct {
+		name         string
+		args         args
+		wantKey      string
+		wantStrAttrs map[string]string
+		wantErr      bool
+	}{
+		// TODO: Add test cases.
+		{name: "1st", args: args{p}, wantKey: `test_value_text$12345`,
+			wantStrAttrs: map[string]string{"Attr-Int": "12345", "Attr-Text": "test value text", "Attr-Time": "1970-01-01 03:00:00 +0300 MSK", "VSA-Attr-Time": "1970-01-01 03:00:00 +0300 MSK"}, wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := nf
+			gotKey, gotStrAttrs, err := a.FilterStrings(tt.args.p)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AttrFilter.FilterStrings() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotKey != tt.wantKey {
+				t.Errorf("AttrFilter.FilterStrings() gotKey = %v, want %v", gotKey, tt.wantKey)
+			}
+			if !reflect.DeepEqual(gotStrAttrs, tt.wantStrAttrs) {
+				t.Errorf("AttrFilter.FilterStrings() gotStrAttrs = %v, want %v", gotStrAttrs, tt.wantStrAttrs)
 			}
 		})
 	}

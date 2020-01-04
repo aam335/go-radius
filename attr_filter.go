@@ -1,9 +1,9 @@
 package radius
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 // AttrFilter is used for smart decoding of attributes from a package.
@@ -105,6 +105,25 @@ func (a *AttrFilter) Keygen(attrMap map[string]*Attribute) string {
 			}
 		}
 	}
-	b, _ := json.Marshal(out)
+	//b, _ := json.Marshal(out)
+	b := strings.Join(out, "$")
+	b = strings.ReplaceAll(b, " ", "_")
 	return string(b)
+}
+
+// FilterStrings returns transport key and attributes in map[string]string
+func (a *AttrFilter) FilterStrings(p *Packet) (key string, strAttrs map[string]string, err error) {
+	attrs, err := a.Filter(p)
+	if err != nil {
+		return "", nil, err
+	}
+	if len(a.keys) > 0 {
+		key = a.Keygen(attrs)
+	}
+	strAttrs = make(map[string]string)
+	for name, attr := range attrs {
+		val := fmt.Sprint(attr.Value)
+		strAttrs[name] = val
+	}
+	return
 }
