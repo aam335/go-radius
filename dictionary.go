@@ -1,7 +1,6 @@
 package radius
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 )
@@ -156,7 +155,7 @@ func (d *Dictionary) coreAttrTag(name string, tagged bool, tag byte, value inter
 	entry := d.attributesByName[name]
 	d.mu.RUnlock()
 	if entry == nil {
-		return nil, errors.New("radius: attribute name not registered")
+		return nil, fmt.Errorf("radius: attribute name '%v' not registered", name)
 	}
 	if entry.Tagged != tagged {
 		return nil, fmt.Errorf("Attribute %v has Tagged=%v, but sets as Tagged=%v", name, entry.Tagged, tagged)

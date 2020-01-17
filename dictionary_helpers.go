@@ -42,14 +42,18 @@ func (d *Dictionary) MustRegisterDC(dict DictionaryContainer) {
 func (d *Dictionary) StrsToAttrs(m map[string]string) (attrs []*Attribute, err error) {
 	attrs = []*Attribute{}
 	var a *Attribute
+	var lastErr error
 	for name, val := range m {
 		if idx := strings.Index(name, "."); idx > 0 {
 			name = name[:idx]
 		}
-		if a, err = d.Attr(name, val); err == nil {
+		if a, lastErr = d.Attr(name, val); lastErr == nil {
 			// log.Printf("Error:%v (%v:%v)", err, name, val)
 			// return
 			attrs = append(attrs, a)
+		} else {
+			err = lastErr
+			continue
 		}
 	}
 	return
