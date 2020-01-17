@@ -1,6 +1,9 @@
 package radius
 
-import "strings"
+import (
+	"log"
+	"strings"
+)
 
 // DictionaryAttr structure for mass Attribute import
 type DictionaryAttr struct {
@@ -44,6 +47,7 @@ func (d *Dictionary) StrsToAttrs(m map[string]string) (attrs []*Attribute, err e
 			name = name[:idx]
 		}
 		if a, err = d.Attr(name, val); err != nil {
+			log.Printf("Attribute unknown (%v:%v)", name, val)
 			return
 		}
 		attrs = append(attrs, a)
