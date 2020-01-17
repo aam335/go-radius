@@ -1,7 +1,6 @@
 package radius
 
 import (
-	"log"
 	"strings"
 )
 
@@ -39,6 +38,7 @@ func (d *Dictionary) MustRegisterDC(dict DictionaryContainer) {
 
 // StrsToAttrs makes []*Attribute from map[string]string
 // this suitable for reply from sql backend etc...
+// returns last error
 func (d *Dictionary) StrsToAttrs(m map[string]string) (attrs []*Attribute, err error) {
 	attrs = []*Attribute{}
 	var a *Attribute
@@ -46,11 +46,11 @@ func (d *Dictionary) StrsToAttrs(m map[string]string) (attrs []*Attribute, err e
 		if idx := strings.Index(name, "."); idx > 0 {
 			name = name[:idx]
 		}
-		if a, err = d.Attr(name, val); err != nil {
-			log.Printf("Attribute unknown (%v:%v)", name, val)
-			return
+		if a, err = d.Attr(name, val); err == nil {
+			// log.Printf("Error:%v (%v:%v)", err, name, val)
+			// return
+			attrs = append(attrs, a)
 		}
-		attrs = append(attrs, a)
 	}
 	return
 }
