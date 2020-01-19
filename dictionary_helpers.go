@@ -12,6 +12,19 @@ type DictionaryAttr struct {
 	Codec  AttributeCodec
 }
 
+// VendorDict Vendor dictionary for configs
+type VendorDict struct {
+	VendorName string
+	VendorID   uint32
+	Attrs      []struct {
+		Name    string
+		Type    byte
+		Tagged  bool
+		RadType string
+		Aliases []string
+	}
+}
+
 // DictionaryContainer additional dictionaries
 type DictionaryContainer interface {
 	Dict() (vendorID uint32, attrs []DictionaryAttr)
